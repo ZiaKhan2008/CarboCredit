@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Page</title>
+    <meta name="viewport" content="width=device-width height=device-height"> 
+    <style>
+        /* CSS styles for the page */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: rgb(16, 24, 74);
+            flex-direction: column; /* Center elements vertically */
+        }
+
+        h1 {
+            font-size: 36px;
+            color: white;
+        }
+
+        form {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            color: #000 !important;
+            width: 100%;
+            padding: 2px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="submit"] {
+            background-color: rgb(16, 24, 74);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        label {
+            font-weight: bold;
+        }
+        #paymentContainer {
+    position: relative; /* Container for relative positioning */
+}
+
+#paymentForm {
+    position: relative; /* Ensure the form stays in the flow */
+}
+
+#qrCode {
+    position: center; /* Position the QR code absolutely within the container */
+    top: 185px; /* Adjust the top position as needed */
+    left: 497px; /* Adjust the left position as needed */
+}
+    </style>
+</head>
+<body>
+    <h1 id="title">Payment Page</h1>
+    <div id="paymentConatiner">
+    <form id="paymentForm" onsubmit="createPayment(event)">
+        <!-- Input fields for payment details -->
+        <label for="Destination">Destination:</label>
+        <input type="text" id="Destination" name="Destination" required><br><br>
+
+        <label for="DestinationTag">Destination Tag:</label>
+        <input type='text' id="DestinationTag" name="DestinationTag"><br><br>
+
+        <label for="Amount" id="ammountablel">Carbon offset(in metric tons):</label>
+        <input type="text" id="Amount" name="Amount" required><br><br>
+        <img id="qrCode" alt="QR Code">
+
+        <input type="submit" value="Make Payment" id="submit">
+    </form>
+    </div>
+
+
+    <!-- Include the Xumm JavaScript library -->
+    <script src="https://xumm.app/assets/cdn/xumm.min.js"></script>
+    <script>
+        Access-Control-Allow-Origin: 'http://carbocredit.org'
+(async () => {
+    const url = 'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest';
+
+    const parameters = {
+        slug: 'xrp',
+        convert: 'USD',
+    };
+
+    const headers = {
+        Accept: 'application/json',
+        'X-CMC_PRO_API_KEY': '766f499a-ebc2-4358-80e4-5ba694ce2ce0',
+    };
+
+    const queryString = new URLSearchParams(parameters).toString();
+    const fullUrl = `${url}?${queryString}`;
+
+    try {
+        const response = await fetch(fullUrl, { headers });
+        const data = await response.json();
+        console.log(data);
+    } catch (error) {
+        console.error(error);
+    }
+})();
+</script>
+
+    <script>
+        var email = localStorage.getItem('email');
+
+var inputBox = document.getElementById('Amount');
+var price = ""
+inputBox.onkeyup = function () {
+    price = parseFloat(inputBox.value) * 12.41; // Use parseFloat to handle decimal input
+    price = price * 1.78; 
+    price = price.toFixed(0);; // Round the price to 2 decimal places
+    //price = trunc(price);
+    console.log(price);
+    document.getElementById('ammountablel').innerHTML = price + " XRP";
+}
+
+        var inputBox = document.getElementById('Amount');
+        var image = document.getElementById("qrCode");
+        image.style.display = "none";
+        // Define the createPayment function in the global scope
+// Define the createPayment function in the global scope
+// Define the createPayment function in the global scope
+function createPayment(event) {
+    event.preventDefault(); // Prevent the default form submission behavior
+
+    // Move the calculateprice() function call here
+
+    var destination = document.getElementById("Destination").value;
+    var destination_tag = document.getElementById("DestinationTag").value;
+    var amount = document.getElementById("Amount").value;
+
+    if (isNaN(amount)) {
+        alert("Please enter a valid amount.");
+        return;
+    }
+
+    var xumm = new Xumm('1e9144b6-adcf-45ac-bc96-930311f872eb');
+
+    xumm.payload.createAndSubscribe({
+        TransactionType: 'Payment',
+        Destination: destination,
+        DestinationTag: destination_tag,
+        Amount: String(price*1000000),
+        Fee: 15
+    })
+    .then(({ created, resolved }) => {
+        console.log('Payload URL:', created.next.always);
+        console.log('Payload QR:', created.refs.qr_png);
+        console.log(created.response)
+
+        // Get the img element by its id
+        var qrCodeImg = document.getElementById("qrCode");
+        var text = document.getElementById("title");
+
+        // Set the src attribute of the img element to the QR code URL
+        qrCodeImg.src = created.refs.qr_png;
+
+        text.innerText = "Please Scan the QR code to continue"
+
+        qrCodeImg.style.display = "block";
+        return resolved;
+    })
+    .then(payload => console.log('Payload resolved', payload))
+    .catch(error => {
+        console.error('Error creating the Xumm payload:', error);
+    });
+}
+
+
+
+    </script>
+</body>
+</html>

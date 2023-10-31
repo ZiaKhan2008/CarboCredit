@@ -1,0 +1,26 @@
+<html lang="en">
+  <body>
+    <h1 id="accountaddress">...</h1>
+    <button id="signinbutton" onclick="xumm.authorize()">Login</button>
+    <button id="logoutbutton" onclick="xumm.logout()">Logout</button>
+        
+    <script src="https://xumm.app/assets/cdn/xumm.min.js"></script>
+    <script>
+      var xumm = new Xumm('1e9144b6-adcf-45ac-bc96-930311f872eb')
+      
+      xumm.on("ready", () => console.log("Ready (e.g. hide loading state of page)"))
+      
+      // We rely on promises in the `success` event: fired again if a user
+      // logs out and logs back in again (resets all promises)
+      xumm.on("success", async () => {
+        xumm.user.account.then(account => {
+          document.getElementById('accountaddress').innerText = account
+        })
+      })
+
+      xumm.on("logout", async () => {
+        document.getElementById('accountaddress').innerText = '...'
+      })
+    </script>
+  </body>
+</html>
